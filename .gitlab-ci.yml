@@ -1,0 +1,1 @@
+include: https://gitlab.eclipse.org/eclipse/xfsc/dev-ops/ci-templates/-/blob/main/standard-docker-ci.yaml

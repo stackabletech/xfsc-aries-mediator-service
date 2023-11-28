@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ template "app.name" . }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app.labels" . | nindent 8 }}
+      annotations:
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        {{- include "app.securitycontext" . | nindent 8 }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}                      
+        ports:
+        - name: http
+          containerPort: {{ .Values.server.http.port }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.server.http.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 2
+          failureThreshold: 2
+          timeoutSeconds: 5
+        args: {{  range .Values.config.arguments }}
+                - {{ . }}
+              {{ end }}
+        env:
+          - name: SCHEMA
+            value: {{ .Values.config.postgres.schema }}
+          - name: DB_USER
+            value: {{ .Values.config.postgres.user }}
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: {{ .Values.config.postgres.password.key }}
+                name:  {{ .Values.config.postgres.password.name }}
+          - name: MEDIATOR_CONTROLLER_ADMIN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                key: MEDIATOR_CONTROLLER_ADMIN_API_KEY
+                name:  mediator-config
+          - name: MEDIATOR_AGENT_ADMIN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                key: MEDIATOR_AGENT_ADMIN_API_KEY
+                name:  mediator-config
+          - name: ACAPY_WALLET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: ACAPY_WALLET_KEY
+                name:  mediator-config
+          - name: MEDIATOR_AGENT_ADMIN_MODE
+          - name: MEDIATOR_CONTROLLER_WEBHOOK
+            value: http://mediator:3010/webhooks
+          - name: MEDIATOR_AGENT_LABEL
+            value: {{ .Values.config.label }}
+          - name: MEDIATOR_AGENT_HTTP_IN_PORT
+            value: "3000"
+          - name: MEDIATOR_AGENT_WS_IN_PORT
+            value: "3001"
+          - name: MEDIATOR_AGENT_HTTP_ADMIN_PORT
+            value: "3002"
+          - name: MEDIATOR_ALIAS
+            value: MOON
+          - name: LOG_LEVEL
+            value: DEBUG
+          - name: MEDIATOR_ENDPOINT_URL
+            value: {{ .Values.config.url }}
+          - name: ENV
+            value: local
+          - name: ACAPY_WALLET_NAME
+            value: dev-mediator
+          - name: MEDIATOR_ARG_FILE
+            value: ./configs/mediator-auto-accept.yml

@@ -1,93 +1,156 @@
-# aries-mediator-service
+# Aries Mediator Service
 
+## TL;DR
 
+This repository provides a simple process for a developer to run an Aries mediator agent. You should be able to bring the stack on-line by copying `.env.stample` to `.env` and running `docker-compose up`. For more information, keep reading.
 
-## Getting started
+## Build & Run 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+This is setup to be run as is with a simple `docker-compose up`. When run it will fire up the following containers:
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### ngrok
 
-## Add your files
+You need to accept inbound connections. Most of us are behind firewalls or have impermanent IP addresses. Ngrok is used as a proxy to work around this. It will provide the URL that will act as a front door for your wallet to access the mediator service.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+If you have a paid ngrok account you can provide your access token as one of the parameters (via the .env file). If not, leave it blank and it'll assume your on the free plan.
+
+Pro Tip 🤓 
+
+- Free plans can only keep a connection open for 60 minutes. After this, you will need to restart the stack. If this gets annoying, use a paid plan for a long lived tunnel :)
+
+- Every time your restart the stack (all the containers) the URL will change. You may be able to work around this with different paid plans.
+
+### Caddy
+
+Your wallet needs to open two connections to the mediator: The first is a standard **https** connection. This will be embedded in the invitation and will be used by the wallet for standard CRUD operations. Once the invite is accepted, a second WebSocket (wss) connection will be opened. This will be the primary mode of communication between the mediator and your wallet.
+
+Caddy is used to route **http** and **wss** traffic to the correct transport on the mediator. Without it, two ngrok tunnels would need to be started making startup and configuration a little more complicated.
+
+In any case, I think its more clear and consumable to have a single URL.
+
+### Mediator Demo Controller
+
+The mediator is configured to allow it to automatically accept connections. This functionality can be delegated to a controller process if business rules require approval / intervention before accepting a connection. A sample controller to do this is included with the project.
+
+This custom **nodejs** app, written in TypeScript, uses [Feathers JS](https://feathersjs.com) to provide RESTFull endpoints to ACA-py. To enable the controller and have it determine if connections should be accepted:
+
+1. Update the mediator configuration
+
+In the `.env` file override the mediator config environment variable by adding `MEDIATOR_ARG_FILE` as follows:
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.eclipse.org/eclipse/xfsc/pcm/aries-mediator-service.git
-git branch -M main
-git push -uf origin main
+MEDIATOR_ARG_FILE=./configs/mediator-with-controller.yml
 ```
 
-## Integrate with your tools
+2. Enable the mediator service in the docker stack 
 
-- [ ] [Set up project integrations](https://gitlab.eclipse.org/eclipse/xfsc/pcm/aries-mediator-service/-/settings/integrations)
+Remove these two lines from the [docker-compose.yml](./docker-compose.yml) file in the `mediator-controller` service:
 
-## Collaborate with your team
+```
+    profiles:
+      - donotstart
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+3. Add the following line to [start.sh](./acapy/start.sh) to allow the mediator to find and use the controller:
 
-## Test and Deploy
+```
+    --webhook-url ${MEDIATOR_CONTROLLER_WEBHOOK}
+```
 
-Use the built-in continuous integration in GitLab.
+### Mediator
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+A mediator is just a special type of agent. In this case, the mediator is ACA-py, with a few special config params, into make it run as a "mediator" rather than a traditional agent.
 
-***
+About 1/2 of the params for ACA-py are provided in `start.sh`, others are passed via a configuration file [mediator-auto-accept.yml](./acapy/configs/mediator.yml). Move them around as you see fit. Ones that are likely to change are better kept as environment variables.
 
-# Editing this README
+### PostgreSQL
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+[PostgreSQL](https://www.postgresql.org) is well known RDBMS. It is used by the mediator persist wallet information. Without it, the wallet would be reset every time the stack is restarted. The first time the mediator container runs it will create a database for its wallet and initialize the wallet state.
 
-## Suggestions for a good README
+### Run It !
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+0. Put some tunes on, it'll help. Here's one to get you started [Bossa Nova - Take On Me](https://open.spotify.com/track/7rpDM5zKuWaf2VzXFKU3yV?si=6aacebaa532d4848). You should have it up and running before the song is done.
 
-## Name
-Choose a self-explaining name for your project.
+1. Start by cloning this repo:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```console
+git clone git@github.com:fullboar/aries-mediator-service.git
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+2. Copy the file `env.sample` to `.env` in the root of the project. The default values are fine, edit as you see fit. This file will be used by `docker-compose` to add or override any environment variables.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```console
+cp env.sample .env
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Pro Tip 🤓
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+You can generate strong tokens for production with `OpenSSL`:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```console
+openssl rand 32 -hex
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+3. Bring up the stack. When you first run this command it will build the mediator container so it may take a few moments. Subsequent restarts will be much faster.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```console
+docker-compose up
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+When the stack is on-line you'll see a big white QR code scroll up your screen, just above that is your invitation URL. I'll look something like this:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```console
+mediator_1             | Invitation URL (Connections protocol):
+mediator_1             | https://ed49-70-67-240-52.ngrok.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiZmYwMjkzNmYtNzYzZC00N2JjLWE2ZmYtMmZjZmI2NmVjNTVmIiwgImxhYmVsIjogIk1lZGlhdG9yIiwgInJlY2lwaWVudEtleXMiOiBbIkFyVzd1NkgxQjRHTGdyRXpmUExQZERNUXlnaEhXZEJTb0d5amRCY0UzS0pEIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly9lZDQ5LTcwLTY3LTI0MC01Mi5uZ3Jvay5pbyJ9
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+The `c_i` parameter is your reusable invitation encoded as base64. Let's decode it and see what's inside:
 
-## License
-For open source projects, say how it is licensed.
+```json
+{"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation", "@id": "ff02936f-763d-47bc-a6ff-2fcfb66ec55f", "label": "Mediator", "recipientKeys": ["ArW7u6H1B4GLgrEzfPLPdDMQyghHWdBSoGyjdBcE3KJD"], "serviceEndpoint": "https://ed49-70-67-240-52.ngrok.io"}
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Pro Tip 🤓
+
+The invitation will be regenerated every time you restart the docker stack for two important reason:
+
+1. The `ngrok` URL changes with restarts; and 
+2. The database is not persistent. This is where wallet initialization data, like [verkey](https://hyperledger.github.io/indy-did-method/) is stored. This will cause the `@id` and `recipientKeys` properties to change in the invitation (`c_i` payload above).
+
+The general workaround steps are: 
+
+- expose the caddy ports outside of the container; 
+- start `ngrok` outside of a container and update the MEDIATOR_URL in [start.sh](./acapy/start.sh);
+- give postgres a persistent volume;
+
+### Aries Bifold Wallet Integration
+
+You can easily use your newly minted mediator with the [Aries Bifold wallet](https://github.com/hyperledger/aries-mobile-agent-react-native). Take the full invitation URL from above and provide it to Bifold through the `MEDIATOR_URL` parameter. This can be in the form of an environment variable or, a more reliable way is to create a `.env` file in the root of the project with the parameter `MEDIATOR_URL` in it like this:
+
+```console
+MEDIATOR_URL=https://ed49-70-67-240-52.ngrok.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiZmYwMjkzNmYtNzYzZC00N2JjLWE2ZmYtMmZjZmI2NmVjNTVmIiwgImxhYmVsIjogIk1lZGlhdG9yIiwgInJlY2lwaWVudEtleXMiOiBbIkFyVzd1NkgxQjRHTGdyRXpmUExQZERNUXlnaEhXZEJTb0d5amRCY0UzS0pEIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly9lZDQ5LTcwLTY3LTI0MC01Mi5uZ3Jvay5pbyJ9
+```
+
+## FAQ
+
+### How does Bifold talk to the Mediator?
+
+I struggled quite a bit with how HTTP/s and WSS are managed internally. The key, for me, was the `--endpoint` argument in ACA-py. To run a mediator, and maybe other agents, it takes two params for this argument. The first is the HTTP/s endpoint and the second is the `WSS` endpoint.
+
+The HTTP/s endpoints, as per the docs on this param, will be used for invitations. Its going to be how your wallet finds and opens a dialogue with the mediator. Once a connection is established the WSS endpoint will be how the mediator and your wallet primarily communicated; they will message over the WebSocket. 
+
+### Can I use two URLs rather than one?
+
+You can use two different URLs and route them to the respective ports on the mediator. It won't care. As per "How does Bifold talk to the Mediator" just make sure the HTTP/s port is the first in the `--endpoint` argument and use `wss://` ad the protocol in the second param even though the URL is the same.
+
+I've used one URL and setup Caddy to route traffic to the correct port on the mediator. I think this setup is much more clear making it easier to consume and maintain.
+
+### Are there other ways to manage transports?
+
+Sure. There is a ACA-py plug-in that will allow it to take both HTTP/s and WSS traffic over a single port. You can find it in the [Plugin Toolbox](https://github.com/hyperledger/aries-acapy-plugin-toolbox)
+
+My pro-tip is use Caddy. Reverse proxies are a tried and tru technology.
+
+### Why Caddy?
+
+I get asked a bit why Caddy? NGINX is great, but I find you need a PhD in NGINX to configure it. Caddy is lightweight and built from the ground up be more effective in cloud (k8s / OpenShift) deployments and has more human friendly config.
