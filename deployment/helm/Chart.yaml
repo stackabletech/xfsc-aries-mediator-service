@@ -6,7 +6,7 @@ description: Kubernetes Helm Chart for the XFSC Aries Mediator Service
 
 name: aries-mediator-service
 
-version: 1.0.0
+version: 1.0.1
 
 dependencies:
   - name: library
