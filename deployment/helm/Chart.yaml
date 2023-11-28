@@ -1,9 +1,10 @@
 apiVersion: v2
 appVersion: v1.0.0
 
-description: Kubernetes Helm Chart for the XFSC Email Service
+description: Kubernetes Helm Chart for the XFSC Aries Mediator Service
 
-name: mediator-service
+
+name: aries-mediator-service
 
 version: 1.0.0
 
