@@ -48,15 +48,24 @@ spec:
                 - {{ . }}
               {{ end }}
         env:
-          - name: SCHEMA
-            value: {{ .Values.config.postgres.schema }}
+          - name: DB_HOST
+            value: {{ .Values.config.postgres.host }}
+          - name: DB_PORT
+            value: {{ .Values.config.postgres.port }}
           - name: DB_USER
             value: {{ .Values.config.postgres.user }}
+          - name: DB_SUPER_USER
+            value: {{ .Values.config.postgres.super_user }}
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: {{ .Values.config.postgres.password.key }}
                 name:  {{ .Values.config.postgres.password.name }}
+          - name: DB_SUPER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: {{ .Values.config.postgres.super_password.key }}
+                name:  {{ .Values.config.postgres.super_password.name }}
           - name: MEDIATOR_CONTROLLER_ADMIN_API_KEY
             valueFrom:
               secretKeyRef:

@@ -7,6 +7,8 @@ MEDIATOR_URL=${MEDIATOR_ENDPOINT_URL}
 echo "Starting agent with endpoint(s): ${MEDIATOR_URL} wss://${MEDIATOR_URL#*://*}"
 
 aca-py start \
+    --wallet-storage-config '{"url":"'"$DB_HOST"'":"'"$DB_PORT"'","wallet_scheme":"DatabasePerWallet"}' \
+    --wallet-storage-creds '{"account":"'"$DB_USER"'","password":"'"$DB_PASSWORD"'","admin_account":"'"$DB_SUPER_USER"'","admin_password":"'"$DB_SUPER_PASSWORD"'"}' \
     --auto-provision \
     --arg-file ${MEDIATOR_ARG_FILE} \
     --label "${MEDIATOR_AGENT_LABEL}" \
