@@ -54,7 +54,8 @@ ingress:
             servicePort: 3001
   tls:
     - secretName: mediator-service-tls
-      hosts: -changeme
+      hosts: 
+        - changeme
 
 security:
   runAsNonRoot: false
