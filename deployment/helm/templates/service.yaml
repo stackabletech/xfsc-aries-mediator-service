@@ -6,11 +6,14 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
   - name: http
-    targetPort: {{ .Values.service.port }}
-    port: {{ .Values.server.http.port }}
+    targetPort: 3000
+    port: 3000
+  - name: wss
+    targetPort: 3001
+    port: 3001
   selector:
     {{- include "app.selectorLabels" . | nindent 4 }}
 
