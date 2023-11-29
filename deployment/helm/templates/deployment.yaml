@@ -37,8 +37,8 @@ spec:
           containerPort: {{ .Values.server.http.port }}
         readinessProbe:
           httpGet:
-            path: /status
-            port: {{ .Values.server.http.port }}
+            path: /status/ready
+            port: 3002
           initialDelaySeconds: 5
           periodSeconds: 5
           successThreshold: 2
