@@ -35,6 +35,8 @@ spec:
         ports:
         - name: http
           containerPort: {{ .Values.server.http.port }}
+        - name: wss
+          containerPort: 3001
         readinessProbe:
           httpGet:
             path: /status/ready
