@@ -70,17 +70,17 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: MEDIATOR_CONTROLLER_ADMIN_API_KEY
-                name:  mediator-config
+                name:  aries-mediator-config
           - name: MEDIATOR_AGENT_ADMIN_API_KEY
             valueFrom:
               secretKeyRef:
                 key: MEDIATOR_AGENT_ADMIN_API_KEY
-                name:  mediator-config
+                name:  aries-mediator-config
           - name: ACAPY_WALLET_KEY
             valueFrom:
               secretKeyRef:
                 key: ACAPY_WALLET_KEY
-                name:  mediator-config
+                name: aries-mediator-config
           - name: MEDIATOR_AGENT_ADMIN_MODE
           - name: MEDIATOR_CONTROLLER_WEBHOOK
             value: http://mediator:3010/webhooks
