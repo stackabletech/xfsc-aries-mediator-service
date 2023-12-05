@@ -68,15 +68,15 @@ config:
   mediatoragentadminapikey: 935e5171191eee6b8ea8f9f38417a13e1c872f1f487889f577a832bb236eac38
   mediatorcontrolleradminapikey: 935e5171191eee6b8ea8f9f38417a13e1c872f1f487889f577a832bb236eac38
   postgres:
-    host: mediator-postgres.xfsc.stackable.tech
+    host: mediator-postgresql
     port: "5432"
     password:
-      key: postgres-password
-      name: postgres-dev
+      key: userPassword
+      name: postgres-secret
     super_password:
-      key: postgres-password
-      name: postgres-dev
-    user: postgres
-    super_user: postgres
+      key: adminPassword
+      name: postgres-secret
+    user: mediator
+    super_user: mediator
     schema: DatabasePerWallet
 
