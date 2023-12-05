@@ -1,0 +1,20 @@
+---
+volumePermissions:
+  enabled: false
+  securityContext:
+    runAsUser: auto
+
+primary:
+  podSecurityContext:
+    enabled: true
+  containerSecurityContext:
+    enabled: false
+
+shmVolume:
+  chmod:
+    enabled: false
+
+auth:
+  username: mediator
+  password: mediator
+  database: mediator
