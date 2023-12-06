@@ -25,7 +25,7 @@ spec:
         paths:
         {{- range .paths }}
           - path: {{ .path }}
-            pathType: Prefix
+            pathType: ImplementationSpecific #Prefix
             backend:
               service:
                 name: {{ template "app.name" $ }}-service
