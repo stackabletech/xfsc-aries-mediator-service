@@ -28,13 +28,18 @@ spec:
         {{- include "app.securitycontext" . | nindent 8 }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecrets }}
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: caddyfile-config
+        name: caddy-configmap-volume
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}                      
         ports:
         - name: http
-          containerPort: {{ .Values.server.http.port }}
+          containerPort: {{ .Values.server.http.mediator }}
         - name: wss
           containerPort: 3001
         readinessProbe:
@@ -106,3 +111,13 @@ spec:
             value: dev-mediator
           - name: MEDIATOR_ARG_FILE
             value: ./configs/mediator-auto-accept.yml
+
+      - name: {{ .Chart.Name }}-proxy
+        image: caddy:latest
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.server.http.caddy }}
+        volumeMounts:
+        - mountPath: /etc/caddy
+          name: caddy-configmap-volume
