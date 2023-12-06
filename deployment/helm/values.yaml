@@ -41,8 +41,6 @@ ingress:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/secure-backends: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.org/websocket-services: "aries-mediator-service"
-
   hosts:
     - host: mediator.xfsc.stackable.tech
       paths:
