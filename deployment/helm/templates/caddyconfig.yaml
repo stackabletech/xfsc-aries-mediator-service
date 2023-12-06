@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddyfile-config
+  namespace: {{ .Release.Namespace }}
+data:
+  Caddyfile: |
+    # Listen on all interfaces, default Caddy port
+    :2015 {
+
+      # This is the pattern that will be used to detect
+      # WebSockets
+      @websockets {
+          header Connection upgrade       
+          header_regexp Connection (?i)^upgrade$
+          header Upgrade websocket
+      }
+
+      # Handle any traffic that matches the `@websockets` pattern
+      handle @websockets {
+        reverse_proxy http://aries-mediator-service:3001
+      }
+
+      # Handle all other traffic.
+      handle {
+        reverse_proxy http://aries-mediator-service:3000
+      }
+
+      # What logs should look like.
+      log {
+          output stdout 
+          # format single_field common_log
+          level DEBUG
+      }
+    }
+

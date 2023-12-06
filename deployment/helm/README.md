@@ -33,31 +33,19 @@ resources:
 
 server:
   http:
-    port: 3000
-
+    caddy: 2015
+    mediator: 3000
 ingress:
   enabled: true
   annotations:
     acme.cert-manager.io/http01-edit-in-place: "true"
     cert-manager.io/issuer: {lets encrypt issuer name}
     nginx.org/websocket-services: "aries-mediator-service"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/secure-backends: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.org/websocket-services: "aries-mediator-service"
-
   hosts:
     - host: {CHANGE ME HOST}
       paths:
         - path: /mediator(/|$)(.*)
-          port: 3000
-    - host: {CHANGE ME HOST}
-      paths:
-        - path: /mediator(/|$)(.*)
-          port: 3001
+          port: 2015
   tls:
     - secretName: aries-mediator-service-tls
       hosts: 
