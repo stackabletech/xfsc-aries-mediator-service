@@ -6,11 +6,12 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
   - name: http
-    targetPort: {{ .Values.server.http.caddy }}
-    port: {{ .Values.server.http.caddy }}
+    targetPort: 2015
+    appProtocol: http
+    port: 2015
   selector:
     {{- include "app.selectorLabels" . | nindent 4 }}
 

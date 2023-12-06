@@ -40,7 +40,7 @@ ingress:
   annotations:
     acme.cert-manager.io/http01-edit-in-place: "true"
     cert-manager.io/issuer: {lets encrypt issuer name}
-    nginx.org/websocket-services: "aries-mediator-service"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
     - host: {CHANGE ME HOST}
       paths:
