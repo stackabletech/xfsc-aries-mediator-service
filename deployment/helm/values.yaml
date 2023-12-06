@@ -33,7 +33,7 @@ ingress:
   enabled: true
   annotations:
     acme.cert-manager.io/http01-edit-in-place: "true"
-    #cert-manager.io/issuer: {lets encrypt issuer name}
+    cert-manager.io/cluster-issuer: letsencrypt
     nginx.org/websocket-services: "aries-mediator-service"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -71,12 +71,11 @@ config:
     host: mediator-postgresql
     port: "5432"
     password:
-      key: userPassword
-      name: postgres-secret
+      key: postgres-password
+      name: mediator-postgresql
     super_password:
-      key: adminPassword
-      name: postgres-secret
-    user: mediator
-    super_user: mediator
+      key: postgres-password
+      name: mediator-postgresql
+    user: postgres
+    super_user: postgres
     schema: DatabasePerWallet
-

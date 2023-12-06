@@ -17,7 +17,5 @@ shmVolume:
 auth:
   database: mediator
   username: mediator
-  existingSecret: postgres-secret
-  secretKeys:
-    userPasswordKey: userPassword
-    adminPasswordKey: adminPassword
+  password: mediator
+  postgresPassword: mediator
