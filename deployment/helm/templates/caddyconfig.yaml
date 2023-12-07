@@ -18,12 +18,12 @@ data:
 
       # Handle any traffic that matches the `@websockets` pattern
       handle @websockets {
-        reverse_proxy http://aries-mediator-service:3001
+        reverse_proxy http://localhost:3001
       }
 
       # Handle all other traffic.
       handle {
-        reverse_proxy http://aries-mediator-service:3000
+        reverse_proxy http://localhost:3000
       }
 
       # What logs should look like.
