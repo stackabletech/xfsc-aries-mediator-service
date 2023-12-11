@@ -1,4 +1,9 @@
-## Create manifests
+## Create 
+
+### Generate keys
+```
+openssl rand -hex 32
+```
 
 ### Postgresql Database (incl. namespace)
 ```
